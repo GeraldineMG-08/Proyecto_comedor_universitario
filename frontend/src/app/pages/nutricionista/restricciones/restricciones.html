@@ -1,1 +1,498 @@
-<p>restricciones works!</p>
+<div class="flex flex-col h-screen bg-slate-50 p-6 lg:p-8 overflow-hidden font-sans text-slate-800">
+
+  <!-- Header -->
+  <div class="flex flex-col xl:flex-row gap-6 mb-6 shrink-0">
+    <div class="flex-1">
+      <div class="flex items-center gap-3 mb-2">
+        <div class="bg-slate-900 text-white p-2.5 rounded-xl shadow-lg">
+          <i class="bi bi-shield-fill-exclamation text-xl"></i>
+        </div>
+        <h2 class="text-2xl font-black text-slate-800 tracking-tight">Restricciones Alimentarias</h2>
+      </div>
+      <p class="text-slate-500 font-medium ml-1">Administración de condiciones médicas y dietas especiales de becarios.</p>
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-200 flex flex-col lg:flex-row justify-between items-center gap-4 mb-6 shrink-0 z-10">
+    <!-- Filter Controls -->
+    <div class="flex items-center gap-3 w-full lg:w-auto flex-1 px-2">
+      <div class="relative flex-1 max-w-md">
+        <i class="bi bi-search text-slate-400 absolute left-4 top-3"></i>
+        <input
+          type="text"
+          [(ngModel)]="searchText"
+          (input)="applyFilters()"
+          placeholder="Buscar por nombre o código..."
+          class="w-full pl-11 pr-4 py-2.5 rounded-xl bg-slate-50 border-none text-sm font-medium text-slate-700 focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all outline-none placeholder:text-slate-400"
+        />
+      </div>
+
+      <div class="w-px h-8 bg-slate-100 mx-2 hidden lg:block"></div>
+
+      <div class="flex gap-2 w-full lg:w-auto overflow-x-auto">
+        <!-- Filter Type -->
+        <select
+          [(ngModel)]="filterType"
+          (change)="applyFilters()"
+          class="pl-4 pr-8 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-600 text-xs font-bold uppercase tracking-wider border border-transparent focus:border-blue-200 focus:bg-white outline-none cursor-pointer transition-all">
+          <option value="all">Tipo: Todos</option>
+          <option *ngFor="let t of tipos" [value]="t.id">{{ t.nombre }}</option>
+        </select>
+
+        <!-- Filter Status -->
+        <select
+          [(ngModel)]="filterStatus"
+          (change)="applyFilters()"
+          class="pl-4 pr-8 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-600 text-xs font-bold uppercase tracking-wider border border-transparent focus:border-blue-200 focus:bg-white outline-none cursor-pointer transition-all">
+          <option value="all">Estado: Todos</option>
+          <option value="activo">Activo</option>
+          <option value="inactivo">Inactivo</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Create Button -->
+    <div class="flex items-center gap-3 w-full lg:w-auto px-2">
+      <button (click)="openModal('create')" class="w-full lg:w-auto bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-md transition-all active:scale-95 flex items-center justify-center gap-2">
+        <i class="bi bi-plus-circle-fill"></i> <span>Nueva Restricción</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Data Table Card -->
+  <div class="flex-1 bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm flex flex-col relative">
+    <div class="overflow-x-auto flex-1">
+      <table class="w-full text-left border-collapse min-w-[1000px]">
+        <thead class="bg-slate-50 sticky top-0 z-10">
+          <tr>
+            <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 pl-8">Estudiante</th>
+            <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Código</th>
+            <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Tipo de Alerta</th>
+            <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 w-[30%]">Detalle Clínico</th>
+            <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 w-[15%]">Vigencia</th>
+            <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 text-center">Estado</th>
+            <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 text-center pr-8">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          <!-- Empty State -->
+          <tr *ngIf="filteredRestrictions.length === 0">
+            <td colspan="7" class="px-6 py-20 text-center">
+              <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100">
+                <i class="bi bi-search text-slate-300 text-3xl"></i>
+              </div>
+              <h3 class="text-slate-800 font-bold text-lg mb-1">Sin resultados</h3>
+              <p class="text-xs text-slate-400 font-medium">Pruebe modificando su criterio de búsqueda o filtros.</p>
+            </td>
+          </tr>
+
+          <!-- Data rows -->
+          <tr *ngFor="let item of filteredRestrictions" class="group hover:bg-blue-50/20 transition-colors">
+            <!-- Student profile -->
+            <td class="px-6 py-4 pl-8">
+              <div class="flex items-center gap-4">
+                <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-xs font-black text-slate-500 border border-slate-200 shadow-sm shrink-0">
+                  {{ getInitials(item.nombre_completo) }}
+                </div>
+                <div>
+                  <h4 class="font-bold text-slate-800 text-sm leading-tight">{{ item.nombre_completo }}</h4>
+                  <p class="text-[10px] text-slate-400 mt-1 truncate max-w-[180px]">{{ item.nombre_escuela }}</p>
+                </div>
+              </div>
+            </td>
+
+            <!-- Code -->
+            <td class="px-6 py-4 align-middle">
+              <span class="text-xs font-mono font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded border border-slate-200">
+                {{ item.codigo_universitario }}
+              </span>
+            </td>
+
+            <!-- Category Style -->
+            <td class="px-6 py-4 align-middle">
+              <div [ngClass]="[getStyle(item.id_tipo_restriccion).bg, getStyle(item.id_tipo_restriccion).border]" class="inline-flex items-center gap-2 px-3 py-1 rounded-lg border shadow-sm w-fit">
+                <i [ngClass]="[getStyle(item.id_tipo_restriccion).icon, getStyle(item.id_tipo_restriccion).color]" class="text-xs"></i>
+                <span [ngClass]="getStyle(item.id_tipo_restriccion).color" class="text-xs font-bold">{{ item.nombre_tipo }}</span>
+              </div>
+            </td>
+
+            <!-- Details -->
+            <td class="px-6 py-4 align-middle">
+              <p class="text-sm text-slate-600 font-medium leading-relaxed line-clamp-2">{{ item.alimentos_restringidos }}</p>
+            </td>
+
+            <!-- Vigency -->
+            <td class="px-6 py-4 align-middle">
+              <span class="text-xs font-semibold text-slate-600 block leading-tight">
+                {{ formatDate(item.fecha_inicio) }} hasta {{ formatDate(item.fecha_termino) }}
+              </span>
+            </td>
+
+            <!-- Status -->
+            <td class="px-6 py-4 text-center align-middle">
+              <span *ngIf="item.estado === 'activo'" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200 text-[10px] font-bold uppercase tracking-wide">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Activo
+              </span>
+              <span *ngIf="item.estado !== 'activo'" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 text-slate-500 border border-slate-200 text-[10px] font-bold uppercase tracking-wide">
+                Inactivo
+              </span>
+            </td>
+
+            <!-- Actions -->
+            <td class="px-6 py-4 text-center align-middle pr-8">
+              <div class="flex items-center justify-center gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
+                <button (click)="openModal('view', item)" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-white hover:shadow-sm border border-transparent hover:border-slate-100" title="Ver Detalle">
+                  <i class="bi bi-eye"></i>
+                </button>
+                <button (click)="openModal('edit', item)" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-amber-600 hover:bg-white hover:shadow-sm border border-transparent hover:border-slate-100" title="Editar">
+                  <i class="bi bi-pencil"></i>
+                </button>
+                <button *ngIf="item.estado === 'activo'" (click)="deleteItem(item.id)" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-red-600 hover:bg-white hover:shadow-sm border border-transparent hover:border-slate-100" title="Eliminar">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Footer row counts -->
+    <div class="border-t border-slate-100 bg-slate-50/50 p-4 flex justify-between items-center text-xs font-semibold text-slate-400">
+      <span>Mostrando {{ filteredRestrictions.length }} registros</span>
+    </div>
+  </div>
+
+  <!-- MAIN REGISTRATION MODAL -->
+  <div *ngIf="mainModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 lg:p-6">
+    <div class="bg-white w-full max-w-6xl h-[90vh] rounded-3xl shadow-2xl overflow-hidden flex flex-col ring-1 ring-slate-900/5">
+
+      <!-- Modal Header -->
+      <div class="bg-white px-8 py-5 border-b border-slate-100 flex justify-between items-center shrink-0 relative z-20">
+        <div class="flex items-center gap-4">
+          <div [ngClass]="{
+            'bg-blue-50 text-blue-600': modalMode === 'create',
+            'bg-amber-50 text-amber-600': modalMode === 'edit',
+            'bg-slate-50 text-slate-600': modalMode === 'view'
+          }" class="p-3 rounded-2xl">
+            <i [ngClass]="{
+              'bi-plus-circle-fill': modalMode === 'create',
+              'bi-pencil-square': modalMode === 'edit',
+              'bi-eye-fill': modalMode === 'view'
+            }" class="text-xl"></i>
+          </div>
+          <div>
+            <h2 class="text-xl font-black text-slate-800 tracking-tight">
+              {{ modalMode === 'create' ? 'Registrar Nueva Restricción' : (modalMode === 'edit' ? 'Modificar Restricción' : 'Detalle de Restricción') }}
+            </h2>
+            <p class="text-sm font-medium text-slate-400">
+              {{ modalMode === 'create' ? 'Complete el formulario digital.' : (modalMode === 'edit' ? 'Edite los campos necesarios.' : 'Información en modo solo lectura.') }}
+            </p>
+          </div>
+        </div>
+        <button (click)="closeModal()" class="group p-2 rounded-full hover:bg-slate-50 transition-colors">
+          <i class="bi bi-x text-2xl text-slate-300 group-hover:text-slate-500"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body (Two-column layout) -->
+      <div class="flex-1 flex flex-col lg:flex-row overflow-hidden bg-white">
+
+        <!-- LEFT PANEL: VISOR / DOCUMENT SUSTENTO -->
+        <div class="w-full lg:w-5/12 bg-slate-800 flex flex-col border-r border-slate-700 relative overflow-hidden h-[300px] lg:h-auto">
+          <!-- Visor title bar -->
+          <div class="flex items-center justify-between px-6 py-3 bg-slate-900/50 border-b border-slate-700">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+              <i class="bi bi-file-earmark-text-fill"></i> Documento de Sustento
+            </span>
+            <a *ngIf="selectedFileUrl" [href]="selectedFileUrl" target="_blank" [download]="selectedFileName" class="text-[10px] text-blue-300 hover:text-white flex items-center gap-1 transition-colors">
+              <i class="bi bi-download"></i> Descargar
+            </a>
+          </div>
+
+          <!-- Document Visor Area -->
+          <div class="flex-1 flex items-center justify-center p-6 relative">
+            <input
+              type="file"
+              id="fileUploadInput"
+              (change)="onFileSelected($event)"
+              class="hidden"
+              accept=".pdf,.jpg,.jpeg,.png"
+            />
+
+            <!-- Upload state (If empty and edit mode allows uploading) -->
+            <div *ngIf="!selectedFileUrl" class="w-full max-w-sm">
+              <label
+                for="fileUploadInput"
+                [ngClass]="modalMode === 'view' ? 'opacity-50 pointer-events-none' : ''"
+                class="w-full block cursor-pointer group">
+                <div class="border-2 border-dashed border-slate-600 rounded-2xl bg-slate-800/50 flex flex-col items-center justify-center p-8 transition-all hover:border-slate-500 hover:bg-slate-700/30">
+                  <div class="flex flex-col items-center justify-center mb-6">
+                    <div class="w-16 h-16 bg-slate-700 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                      <i class="bi bi-cloud-arrow-up-fill text-2xl text-blue-400"></i>
+                    </div>
+                    <h3 class="text-base font-bold text-slate-200">Subir Sustento</h3>
+                    <p class="text-xs text-slate-400 text-center mt-2 px-4 leading-relaxed">
+                      Adjuntar certificado médico o constancia oficial que valide el cuadro especial.
+                    </p>
+                    <p class="text-[10px] font-mono text-slate-500 mt-4 bg-slate-900/50 px-3 py-1 rounded-full">
+                      PDF, JPG, PNG (Máx. 5MB)
+                    </p>
+                  </div>
+
+                  <div class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2">
+                    <i class="bi bi-folder-fill"></i> Seleccionar Archivo
+                  </div>
+                </div>
+              </label>
+            </div>
+
+            <!-- Preview state -->
+            <div *ngIf="selectedFileUrl" class="w-full h-full bg-white rounded-xl shadow-lg overflow-hidden relative flex flex-col">
+              <!-- Actual embed container -->
+              <div class="h-full bg-slate-100 relative overflow-hidden flex flex-col w-full">
+                <!-- PDF preview -->
+                <iframe *ngIf="isPdf()" [src]="getSafeUrl(selectedFileUrl)" class="w-full h-full border-none"></iframe>
+                <!-- Image preview -->
+                <img *ngIf="isImage()" [src]="selectedFileUrl" class="w-full h-full object-contain p-4" alt="Sustento" />
+                <!-- Generic / Unknown -->
+                <div *ngIf="!isPdf() && !isImage()" class="flex flex-col items-center justify-center h-full text-slate-400 gap-2">
+                  <i class="bi bi-file-earmark-check text-4xl"></i>
+                  <span class="text-xs">Documento listo para cargar</span>
+                </div>
+              </div>
+
+              <!-- Delete document button -->
+              <button
+                *ngIf="modalMode !== 'view'"
+                (click)="removeFile()"
+                class="absolute top-4 right-4 bg-red-500 hover:bg-red-600 text-white p-2 rounded-full shadow-lg transition-all z-20 hover:scale-110 active:scale-95">
+                <i class="bi bi-trash-fill text-xs"></i>
+              </button>
+
+              <!-- Footer Overlay info -->
+              <div class="absolute bottom-4 left-0 right-0 pointer-events-none flex flex-col items-center justify-center z-10">
+                <div class="bg-slate-900/80 backdrop-blur px-4 py-2 rounded-lg shadow-md flex items-center gap-2 border border-white/10">
+                  <i class="bi bi-file-earmark-check text-emerald-400"></i>
+                  <p class="text-xs text-white font-mono truncate max-w-[180px]">{{ selectedFileName }}</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- RIGHT PANEL: FORMULARIO -->
+        <div class="w-full lg:w-7/12 flex flex-col bg-white h-full relative z-10">
+          <div class="flex-1 overflow-y-auto p-8 lg:p-10">
+            <form class="space-y-8 max-w-3xl mx-auto">
+
+              <!-- Section: Datos Academicos -->
+              <section class="space-y-4">
+                <div class="flex items-center gap-2 pb-2 border-b border-slate-100">
+                  <i class="bi bi-mortarboard-fill text-blue-600"></i>
+                  <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider">Datos Académicos</h3>
+                </div>
+
+                <div class="grid grid-cols-12 gap-4">
+                  <!-- Code Search trigger -->
+                  <div class="col-span-12 md:col-span-5">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Código Universitario</label>
+                    <div class="relative">
+                      <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="bi bi-person text-slate-400"></i>
+                      </div>
+                      <input
+                        type="text"
+                        [value]="formCodigo"
+                        disabled
+                        class="block w-full pl-10 pr-12 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-800 disabled:opacity-60"
+                        placeholder="202X-XXXX"
+                      />
+                      <button
+                        type="button"
+                        *ngIf="modalMode === 'create'"
+                        (click)="openStudentSearch()"
+                        class="absolute inset-y-1 right-1 px-3 bg-white border border-slate-200 text-slate-500 hover:text-blue-600 rounded-lg text-xs font-bold transition-all flex items-center gap-1 shadow-sm">
+                        <i class="bi bi-search"></i> Buscar
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Professional School -->
+                  <div class="col-span-12 md:col-span-7">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Escuela Profesional</label>
+                    <div class="w-full py-2.5 px-4 bg-slate-50 border border-slate-100 rounded-xl text-sm font-medium text-slate-600 truncate flex items-center gap-2">
+                      <div class="w-2 h-2 rounded-full bg-slate-300"></div>
+                      <span>{{ formEscuela }}</span>
+                    </div>
+                  </div>
+
+                  <!-- Full Student Name -->
+                  <div class="col-span-12">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Estudiante</label>
+                    <div [ngClass]="formIdBecario ? 'bg-blue-50/50 border-blue-100 text-blue-900' : 'bg-slate-50 border-slate-100 text-slate-400'" class="w-full py-2.5 px-4 rounded-xl text-sm font-bold border flex items-center gap-2">
+                      <span>{{ formNombre }}</span>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Section: Cuadro Clinico -->
+              <section class="space-y-4">
+                <div class="flex items-center gap-2 pb-2 border-b border-slate-100">
+                  <i class="bi bi-heart-pulse-fill text-rose-600"></i>
+                  <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider">Cuadro Clínico</h3>
+                </div>
+
+                <div class="space-y-4">
+                  <!-- Category type -->
+                  <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Tipo de Restricción</label>
+                    <select
+                      [(ngModel)]="formTipo"
+                      [disabled]="modalMode === 'view'"
+                      name="formTipo"
+                      class="block w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 transition-all cursor-pointer">
+                      <option *ngFor="let t of tipos" [value]="t.id">{{ t.nombre }}</option>
+                    </select>
+                  </div>
+
+                  <!-- Prohibited Foods description -->
+                  <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Alimentos Prohibidos / Observaciones</label>
+                    <textarea
+                      [(ngModel)]="formAlimentos"
+                      [disabled]="modalMode === 'view'"
+                      name="formAlimentos"
+                      class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-700 placeholder:text-slate-300 focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all min-h-[100px] resize-none outline-none leading-relaxed"
+                      placeholder="Describa detalladamente los alimentos restringidos y patología..."
+                    ></textarea>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Section: Dates -->
+              <section class="space-y-4">
+                <div class="flex items-center gap-2 pb-2 border-b border-slate-100">
+                  <i class="bi bi-calendar-event-fill text-amber-600"></i>
+                  <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider">Vigencia</h3>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                  <!-- Start date -->
+                  <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Fecha Inicio</label>
+                    <input
+                      type="date"
+                      [(ngModel)]="formInicio"
+                      [disabled]="modalMode === 'view'"
+                      name="formInicio"
+                      class="block w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all"
+                    />
+                  </div>
+                  <!-- End date -->
+                  <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Fecha Término</label>
+                    <input
+                      type="date"
+                      [(ngModel)]="formTermino"
+                      [disabled]="modalMode === 'view'"
+                      name="formTermino"
+                      class="block w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all"
+                    />
+                  </div>
+                </div>
+              </section>
+
+            </form>
+          </div>
+
+          <!-- Modal actions footer -->
+          <div class="p-6 border-t border-slate-100 bg-white flex justify-between items-center shrink-0">
+            <div class="text-xs text-slate-400 font-medium px-2">* Campos requeridos</div>
+            <div class="flex gap-3">
+              <button (click)="closeModal()" class="px-5 py-2.5 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-800 font-bold text-xs transition-all">Cancelar</button>
+              <button *ngIf="modalMode !== 'view'" (click)="saveData()" class="px-6 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-md flex items-center gap-2">
+                <i class="bi bi-check-circle-fill"></i> Guardar Expediente
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- STUDENT SEARCH MODAL -->
+  <div *ngIf="searchModalOpen" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+    <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-200">
+
+      <!-- Input bar -->
+      <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center gap-4">
+        <i class="bi bi-search text-slate-400"></i>
+        <input
+          type="text"
+          [(ngModel)]="studentSearchText"
+          (input)="handleStudentSearch()"
+          placeholder="Buscar por código, nombre o escuela..."
+          class="flex-1 bg-transparent text-sm font-medium text-slate-700 placeholder:text-slate-400 outline-none"
+          autofocus
+        />
+        <button (click)="closeStudentSearch()" class="p-1 rounded-full hover:bg-slate-200 text-slate-400">
+          <i class="bi bi-x text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Student Results Area -->
+      <div class="max-h-[350px] overflow-y-auto p-2 bg-slate-50/50 min-h-[150px]">
+        <!-- Loading spinner -->
+        <div *ngIf="loadingStudents" class="py-12 flex flex-col items-center justify-center text-slate-400">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mb-3"></div>
+          <p class="text-sm font-medium">Cargando becarios...</p>
+        </div>
+
+        <!-- Student results -->
+        <div *ngIf="!loadingStudents && studentResults.length > 0" class="space-y-1">
+          <div
+            *ngFor="let s of studentResults"
+            (click)="selectStudent(s)"
+            class="flex items-center p-3 rounded-xl hover:bg-white hover:shadow-md border border-transparent hover:border-blue-100 cursor-pointer transition-all group">
+            <div class="w-10 h-10 rounded-full bg-white text-slate-500 border border-slate-200 flex items-center justify-center font-bold text-xs mr-4 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 transition-colors shadow-sm">
+              {{ s.nombre.substring(0,2) }}
+            </div>
+            <div class="flex-1 min-w-0">
+              <h4 class="text-sm font-bold text-slate-700 group-hover:text-blue-800 transition-colors truncate">{{ s.nombre }}</h4>
+              <div class="flex items-center gap-3 mt-1">
+                <span class="text-[10px] font-mono font-bold text-slate-500 bg-slate-200/50 px-1.5 py-0.5 rounded border border-slate-200 group-hover:border-blue-200 group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">
+                  {{ s.codigo }}
+                </span>
+                <span class="text-[10px] text-slate-400 flex items-center gap-1.5 font-medium">
+                  <span class="w-1 h-1 rounded-full bg-slate-300 group-hover:bg-blue-300"></span> {{ s.escuela }}
+                </span>
+              </div>
+            </div>
+            <div class="opacity-0 group-hover:opacity-100 transition-all px-2 transform translate-x-2 group-hover:translate-x-0">
+              <i class="bi bi-chevron-right text-blue-400"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty state search -->
+        <div *ngIf="!loadingStudents && studentResults.length === 0" class="py-12 flex flex-col items-center justify-center text-slate-400">
+          <i class="bi bi-person-x text-3xl opacity-30 mb-2"></i>
+          <p class="text-sm font-medium">No se encontraron becarios activos.</p>
+        </div>
+      </div>
+
+      <div class="px-6 py-3 bg-white border-t border-slate-100 text-[10px] text-slate-400 flex justify-between font-bold">
+        <span>Resultados de Becarios Activos</span>
+        <span>Haz clic para seleccionar</span>
+      </div>
+
+    </div>
+  </div>
+
+</div>

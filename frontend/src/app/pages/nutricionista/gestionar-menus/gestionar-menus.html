@@ -1,1 +1,422 @@
-<p>gestionar-menus works!</p>
+<div class="flex flex-col lg:flex-row h-full overflow-hidden p-6 gap-6 bg-slate-100 min-h-screen text-slate-800">
+
+  <!-- LEFT COLUMN: CALENDAR (60% Width on large screens) -->
+  <div class="flex-1 flex flex-col h-full bg-transparent overflow-hidden relative">
+
+    <!-- Calendar Header -->
+    <div class="flex items-center justify-between mb-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+      <button
+        (click)="changeMonth(-1)"
+        class="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 text-slate-600 font-bold hover:bg-blue-50 hover:text-blue-600 transition-all">
+        <i class="bi bi-chevron-left"></i>
+      </button>
+      <h2 class="text-xl lg:text-2xl font-black text-slate-800 capitalize tracking-tight">
+        {{ getCurrentMonthDisplay() }}
+      </h2>
+      <button
+        (click)="changeMonth(1)"
+        class="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 text-slate-600 font-bold hover:bg-blue-50 hover:text-blue-600 transition-all">
+        <i class="bi bi-chevron-right"></i>
+      </button>
+    </div>
+
+    <!-- Calendar Grid -->
+    <div class="flex-1 flex flex-col min-h-[450px] bg-white rounded-3xl shadow-sm border border-slate-200 p-6">
+      <!-- Weekday headers -->
+      <div class="grid grid-cols-7 mb-4">
+        <div class="text-center text-xs font-bold text-slate-400 tracking-widest">DOM</div>
+        <div class="text-center text-xs font-bold text-slate-400 tracking-widest">LUN</div>
+        <div class="text-center text-xs font-bold text-slate-400 tracking-widest">MAR</div>
+        <div class="text-center text-xs font-bold text-slate-400 tracking-widest">MIÉ</div>
+        <div class="text-center text-xs font-bold text-slate-400 tracking-widest">JUE</div>
+        <div class="text-center text-xs font-bold text-slate-400 tracking-widest">VIE</div>
+        <div class="text-center text-xs font-bold text-slate-400 tracking-widest">SÁB</div>
+      </div>
+
+      <!-- Calendar Days -->
+      <div class="grid grid-cols-7 auto-rows-fr gap-3 flex-1">
+        <!-- Offset empty boxes for start day index -->
+        <div *ngFor="let empty of getEmptyArray(firstDayIndex)"></div>
+
+        <!-- Days -->
+        <div
+          *ngFor="let day of daysInMonth"
+          (click)="selectDay(day)"
+          [ngClass]="{
+            'bg-blue-600 text-white shadow-lg shadow-blue-200 scale-105 z-10 ring-4 ring-blue-50': isSelected(day),
+            'bg-white border-2 border-blue-500 shadow-sm': isToday(day) && !isSelected(day),
+            'bg-slate-50 hover:bg-white hover:shadow-md border border-transparent hover:border-slate-200': !isSelected(day) && !isToday(day)
+          }"
+          class="relative rounded-2xl p-2 cursor-pointer transition-all duration-300 flex flex-col justify-between h-20 lg:h-24">
+
+          <div class="flex justify-between items-start">
+            <span [ngClass]="{
+              'text-white': isSelected(day),
+              'text-blue-600': isToday(day) && !isSelected(day),
+              'text-slate-600': !isSelected(day) && !isToday(day)
+            }" class="text-base lg:text-lg font-bold">
+              {{ day }}
+            </span>
+          </div>
+
+          <!-- Status Indicator Dot -->
+          <div class="flex justify-center mt-1">
+            <div *ngIf="getDayStatus(day) === 'publicado'" [ngClass]="isSelected(day) ? 'bg-white' : 'bg-green-500'" class="w-2 h-2 rounded-full"></div>
+            <div *ngIf="getDayStatus(day) === 'pendiente'" [ngClass]="isSelected(day) ? 'bg-white/80' : 'bg-amber-400'" class="w-2 h-2 rounded-full"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Calendar Legend -->
+    <div class="mt-4 bg-white px-6 py-3 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap items-center justify-center gap-6 text-xs font-bold text-slate-500 w-fit mx-auto">
+      <span class="flex items-center gap-2"><div class="w-2.5 h-2.5 rounded-full bg-green-500"></div> Publicado</span>
+      <span class="flex items-center gap-2"><div class="w-2.5 h-2.5 rounded-full bg-amber-400"></div> Borrador</span>
+      <span class="flex items-center gap-2"><div class="w-2.5 h-2.5 rounded-full bg-slate-200"></div> Sin Registro</span>
+      <span class="flex items-center gap-2"><div class="w-2.5 h-2.5 border-2 border-blue-500 rounded-full"></div> Hoy</span>
+    </div>
+  </div>
+
+  <!-- RIGHT COLUMN: DETAIL / EDIT PANEL -->
+  <div class="w-full lg:w-[450px] shrink-0 h-full flex flex-col">
+    <div class="bg-white rounded-3xl shadow-xl border border-slate-200 h-full overflow-hidden flex flex-col relative transform transition-all">
+
+      <!-- Panel Header -->
+      <div
+        [ngClass]="isEditing ? 'bg-blue-600 text-white' : 'bg-slate-50 text-slate-800'"
+        class="p-8 pb-6 shrink-0 transition-colors duration-300">
+        <div class="flex justify-between items-start mb-2">
+          <div>
+            <p [ngClass]="isEditing ? 'text-blue-200' : 'text-slate-500'" class="text-sm font-bold uppercase tracking-widest mb-1">
+              {{ getDayName(selectedDate) }}
+            </p>
+            <h3 class="text-2xl lg:text-3xl font-black capitalize leading-none tracking-tight">
+              {{ formatHumanDate(selectedDate) }}
+            </h3>
+          </div>
+
+          <!-- Published Indicator (Read Mode Only) -->
+          <div *ngIf="!isEditing && currentMenuDetail?.estado === 'publicado'" class="bg-green-100 text-green-600 border border-green-200 p-2 rounded-xl shadow-sm">
+            <i class="bi bi-check-circle-fill text-xl"></i>
+          </div>
+
+          <!-- Edit Mode Indicator -->
+          <div *ngIf="isEditing" class="bg-white/20 p-2 rounded-xl backdrop-blur-sm">
+            <i class="bi bi-pencil-fill text-xl text-white"></i>
+          </div>
+        </div>
+
+        <!-- Status Badges (Read Mode Only) -->
+        <div *ngIf="!isEditing" class="flex gap-2 mt-4">
+          <span *ngIf="currentMenuDetail?.estado === 'publicado'" class="bg-green-100 text-green-700 border border-green-200 text-[10px] px-3 py-1 rounded-full font-bold uppercase tracking-wider">
+            Publicado
+          </span>
+          <span *ngIf="currentMenuDetail?.estado === 'pendiente'" class="bg-amber-100 text-amber-700 border border-amber-200 text-[10px] px-3 py-1 rounded-full font-bold uppercase tracking-wider">
+            Borrador
+          </span>
+          <span *ngIf="!currentMenuDetail" class="bg-slate-100 text-slate-500 border border-slate-200 text-[10px] px-3 py-1 rounded-full font-bold uppercase tracking-wider">
+            Sin Asignar
+          </span>
+        </div>
+      </div>
+
+      <!-- Panel Content -->
+      <div class="flex-1 overflow-y-auto p-6 space-y-6 bg-white min-h-[300px]">
+
+        <!-- Loading Spinner -->
+        <div *ngIf="loadingDetails" class="flex justify-center items-center h-48">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+
+        <!-- READ VIEW -->
+        <div *ngIf="!loadingDetails && !isEditing && currentMenuDetail">
+
+          <!-- Desayuno Card -->
+          <div class="group bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden mb-4">
+            <div class="px-5 py-4 flex items-center gap-3 border-b border-slate-50 bg-amber-50/20">
+              <div class="p-2 rounded-xl bg-amber-100">
+                <i class="bi bi-cup-hot-fill text-amber-600"></i>
+              </div>
+              <h4 class="font-bold text-sm text-slate-700">Desayuno</h4>
+            </div>
+            <div class="p-5">
+              <ul class="space-y-3">
+                <li *ngFor="let item of MENU_STRUCTURE.desayuno" class="flex justify-between items-start text-sm">
+                  <div class="pr-2">
+                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">{{ item.nombre }}</span>
+                    <span [innerHTML]="currentMenuDetail.desayuno[item.id]?.plato || '<span class=\'italic text-slate-300 font-normal\'>--</span>'" class="text-slate-700 font-semibold text-xs leading-tight block"></span>
+                  </div>
+                  <span *ngIf="currentMenuDetail.desayuno[item.id]?.kcal" class="text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded-lg border border-slate-100 tabular-nums">
+                    {{ currentMenuDetail.desayuno[item.id]?.kcal }} cal
+                  </span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Almuerzo Card -->
+          <div class="group bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden mb-4">
+            <div class="px-5 py-4 flex items-center gap-3 border-b border-slate-50 bg-blue-50/20">
+              <div class="p-2 rounded-xl bg-blue-100">
+                <i class="bi bi-egg-fried text-blue-600"></i>
+              </div>
+              <h4 class="font-bold text-sm text-slate-700">Almuerzo</h4>
+            </div>
+            <div class="p-5">
+              <ul class="space-y-3">
+                <li *ngFor="let item of MENU_STRUCTURE.almuerzo" class="flex justify-between items-start text-sm">
+                  <div class="pr-2">
+                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">{{ item.nombre }}</span>
+                    <span [innerHTML]="currentMenuDetail.almuerzo[item.id]?.plato || '<span class=\'italic text-slate-300 font-normal\'>--</span>'" class="text-slate-700 font-semibold text-xs leading-tight block"></span>
+                  </div>
+                  <span *ngIf="currentMenuDetail.almuerzo[item.id]?.kcal" class="text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded-lg border border-slate-100 tabular-nums">
+                    {{ currentMenuDetail.almuerzo[item.id]?.kcal }} cal
+                  </span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Cena Card -->
+          <div class="group bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden mb-4">
+            <div class="px-5 py-4 flex items-center gap-3 border-b border-slate-50 bg-indigo-50/20">
+              <div class="p-2 rounded-xl bg-indigo-100">
+                <i class="bi bi-moon-fill text-indigo-600"></i>
+              </div>
+              <h4 class="font-bold text-sm text-slate-700">Cena</h4>
+            </div>
+            <div class="p-5">
+              <ul class="space-y-3">
+                <li *ngFor="let item of MENU_STRUCTURE.cena" class="flex justify-between items-start text-sm">
+                  <div class="pr-2">
+                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">{{ item.nombre }}</span>
+                    <span [innerHTML]="currentMenuDetail.cena[item.id]?.plato || '<span class=\'italic text-slate-300 font-normal\'>--</span>'" class="text-slate-700 font-semibold text-xs leading-tight block"></span>
+                  </div>
+                  <span *ngIf="currentMenuDetail.cena[item.id]?.kcal" class="text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded-lg border border-slate-100 tabular-nums">
+                    {{ currentMenuDetail.cena[item.id]?.kcal }} cal
+                  </span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Total Calories -->
+          <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 flex justify-between items-center mb-6">
+            <div>
+              <p class="text-xs text-slate-400 font-bold uppercase tracking-wide">Total Calorías</p>
+              <p class="text-slate-700 font-bold text-sm">Ingesta diaria calculada</p>
+            </div>
+            <div class="text-right">
+              <span class="text-3xl font-black text-slate-800">{{ currentMenuDetail.total_kcal }}</span>
+              <span class="text-xs font-bold text-slate-400 ml-1">kcal</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- EMPTY STATE -->
+        <div *ngIf="!loadingDetails && !isEditing && !currentMenuDetail" class="h-full flex flex-col items-center justify-center text-center py-10 opacity-70">
+          <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+            <i class="bi bi-egg text-4xl text-slate-400"></i>
+          </div>
+          <h4 class="text-lg font-bold text-slate-600">Día Libre</h4>
+          <p class="text-xs text-slate-400 mb-6 max-w-[180px]">No hay menú registrado para esta fecha.</p>
+          <button (click)="startEdit()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-blue-200 flex items-center gap-2 transition-transform active:scale-95 text-sm">
+            <i class="bi bi-plus-circle-fill"></i> Crear Menú
+          </button>
+        </div>
+
+        <!-- EDIT FORM VIEW -->
+        <div *ngIf="isEditing && editFormData">
+          <!-- Total Estimate Sticky Card -->
+          <div class="bg-blue-50 border border-blue-100 rounded-2xl p-4 flex items-center justify-between mb-6 sticky top-0 z-20 shadow-sm backdrop-blur-md bg-opacity-95">
+            <div class="flex items-center gap-3">
+              <div class="bg-blue-200 p-2 rounded-lg text-blue-700">
+                <i class="bi bi-calculator"></i>
+              </div>
+              <span class="text-xs font-bold text-blue-800 uppercase tracking-wide">Total Estimado</span>
+            </div>
+            <div class="text-right">
+              <span class="text-2xl font-black text-blue-900">{{ editFormData.total_kcal }}</span>
+              <span class="text-xs font-bold text-blue-400 ml-1">kcal</span>
+            </div>
+          </div>
+
+          <!-- Accordion Desayuno -->
+          <div class="rounded-2xl border mb-4 transition-all duration-300" [ngClass]="accordionOpen.desayuno ? 'border-blue-200 shadow-lg ring-1 ring-blue-100 bg-white' : 'border-slate-100 bg-white'">
+            <button (click)="toggleAccordion('desayuno')" class="w-full flex items-center justify-between px-5 py-4 focus:outline-none">
+              <div class="flex items-center gap-3">
+                <div class="p-2 rounded-xl" [ngClass]="accordionOpen.desayuno ? 'bg-amber-100 text-amber-600' : 'bg-slate-50 text-slate-400'">
+                  <i class="bi bi-cup-hot-fill"></i>
+                </div>
+                <div class="text-left">
+                  <h4 class="font-bold text-sm" [ngClass]="accordionOpen.desayuno ? 'text-slate-800' : 'text-slate-500'">Desayuno</h4>
+                  <p *ngIf="!accordionOpen.desayuno" class="text-[10px] text-slate-400 font-medium">Click para editar items</p>
+                </div>
+              </div>
+              <i class="bi bi-chevron-down text-slate-400 transition-transform duration-300" [ngClass]="{'rotate-180 text-blue-500': accordionOpen.desayuno}"></i>
+            </button>
+            <div *ngIf="accordionOpen.desayuno" class="px-5 pb-5 pt-0 space-y-4 border-t border-slate-50 mt-2">
+              <div *ngFor="let item of MENU_STRUCTURE.desayuno" class="group">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 ml-1">{{ item.nombre }}</label>
+                <div class="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Nombre del plato..."
+                    [value]="editFormData.desayuno[item.id]?.plato || ''"
+                    (input)="updateField('desayuno', item.id, 'plato', $any($event.target).value)"
+                    class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-300"
+                  />
+                  <div class="relative w-24 shrink-0">
+                    <input
+                      type="number"
+                      placeholder="0"
+                      [value]="editFormData.desayuno[item.id]?.kcal || ''"
+                      (input)="updateField('desayuno', item.id, 'kcal', $any($event.target).value)"
+                      class="w-full pl-3 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-300 text-center"
+                    />
+                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400 pointer-events-none">cal</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Accordion Almuerzo -->
+          <div class="rounded-2xl border mb-4 transition-all duration-300" [ngClass]="accordionOpen.almuerzo ? 'border-blue-200 shadow-lg ring-1 ring-blue-100 bg-white' : 'border-slate-100 bg-white'">
+            <button (click)="toggleAccordion('almuerzo')" class="w-full flex items-center justify-between px-5 py-4 focus:outline-none">
+              <div class="flex items-center gap-3">
+                <div class="p-2 rounded-xl" [ngClass]="accordionOpen.almuerzo ? 'bg-blue-100 text-blue-600' : 'bg-slate-50 text-slate-400'">
+                  <i class="bi bi-egg-fried"></i>
+                </div>
+                <div class="text-left">
+                  <h4 class="font-bold text-sm" [ngClass]="accordionOpen.almuerzo ? 'text-slate-800' : 'text-slate-500'">Almuerzo</h4>
+                  <p *ngIf="!accordionOpen.almuerzo" class="text-[10px] text-slate-400 font-medium">Click para editar items</p>
+                </div>
+              </div>
+              <i class="bi bi-chevron-down text-slate-400 transition-transform duration-300" [ngClass]="{'rotate-180 text-blue-500': accordionOpen.almuerzo}"></i>
+            </button>
+            <div *ngIf="accordionOpen.almuerzo" class="px-5 pb-5 pt-0 space-y-4 border-t border-slate-50 mt-2">
+              <div *ngFor="let item of MENU_STRUCTURE.almuerzo" class="group">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 ml-1">{{ item.nombre }}</label>
+                <div class="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Nombre del plato..."
+                    [value]="editFormData.almuerzo[item.id]?.plato || ''"
+                    (input)="updateField('almuerzo', item.id, 'plato', $any($event.target).value)"
+                    class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-300"
+                  />
+                  <div class="relative w-24 shrink-0">
+                    <input
+                      type="number"
+                      placeholder="0"
+                      [value]="editFormData.almuerzo[item.id]?.kcal || ''"
+                      (input)="updateField('almuerzo', item.id, 'kcal', $any($event.target).value)"
+                      class="w-full pl-3 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-300 text-center"
+                    />
+                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400 pointer-events-none">cal</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Accordion Cena -->
+          <div class="rounded-2xl border mb-4 transition-all duration-300" [ngClass]="accordionOpen.cena ? 'border-blue-200 shadow-lg ring-1 ring-blue-100 bg-white' : 'border-slate-100 bg-white'">
+            <button (click)="toggleAccordion('cena')" class="w-full flex items-center justify-between px-5 py-4 focus:outline-none">
+              <div class="flex items-center gap-3">
+                <div class="p-2 rounded-xl" [ngClass]="accordionOpen.cena ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-50 text-slate-400'">
+                  <i class="bi bi-moon-fill"></i>
+                </div>
+                <div class="text-left">
+                  <h4 class="font-bold text-sm" [ngClass]="accordionOpen.cena ? 'text-slate-800' : 'text-slate-500'">Cena</h4>
+                  <p *ngIf="!accordionOpen.cena" class="text-[10px] text-slate-400 font-medium">Click para editar items</p>
+                </div>
+              </div>
+              <i class="bi bi-chevron-down text-slate-400 transition-transform duration-300" [ngClass]="{'rotate-180 text-blue-500': accordionOpen.cena}"></i>
+            </button>
+            <div *ngIf="accordionOpen.cena" class="px-5 pb-5 pt-0 space-y-4 border-t border-slate-50 mt-2">
+              <div *ngFor="let item of MENU_STRUCTURE.cena" class="group">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 ml-1">{{ item.nombre }}</label>
+                <div class="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Nombre del plato..."
+                    [value]="editFormData.cena[item.id]?.plato || ''"
+                    (input)="updateField('cena', item.id, 'plato', $any($event.target).value)"
+                    class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-300"
+                  />
+                  <div class="relative w-24 shrink-0">
+                    <input
+                      type="number"
+                      placeholder="0"
+                      [value]="editFormData.cena[item.id]?.kcal || ''"
+                      (input)="updateField('cena', item.id, 'kcal', $any($event.target).value)"
+                      class="w-full pl-3 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-300 text-center"
+                    />
+                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400 pointer-events-none">cal</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Status Editor Selector -->
+          <div class="mt-6 p-4 border-t border-slate-100">
+            <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Estado del Menú</label>
+            <div class="flex gap-2">
+              <button
+                type="button"
+                (click)="setEditStatus('pendiente')"
+                [ngClass]="editFormData.estado === 'pendiente' ? 'bg-amber-100 border-amber-300 text-amber-700' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'"
+                class="flex-1 py-2.5 rounded-lg text-xs font-bold border transition-all">
+                Borrador
+              </button>
+              <button
+                type="button"
+                (click)="setEditStatus('publicado')"
+                [ngClass]="editFormData.estado === 'publicado' ? 'bg-green-100 border-green-300 text-green-700' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'"
+                class="flex-1 py-2.5 rounded-lg text-xs font-bold border transition-all">
+                Publicado
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Panel Footer (Actions) -->
+      <div class="p-4 bg-white border-t border-slate-100 grid grid-cols-2 gap-3 z-10">
+        <!-- Read Mode Footer Actions -->
+        <button
+          *ngIf="!isEditing && currentMenuDetail"
+          (click)="deleteMenu()"
+          class="py-3 rounded-xl border border-red-200 text-red-500 font-bold hover:bg-red-50 hover:border-red-300 transition-all text-xs flex items-center justify-center gap-2">
+          <i class="bi bi-trash-fill"></i> Eliminar
+        </button>
+        <button
+          *ngIf="!isEditing && currentMenuDetail"
+          (click)="startEdit()"
+          class="py-3 rounded-xl bg-slate-800 text-white font-bold hover:bg-slate-700 transition-all text-xs shadow-lg flex items-center justify-center gap-2">
+          <i class="bi bi-pencil-fill"></i> Editar
+        </button>
+
+        <!-- Edit Mode Footer Actions -->
+        <button
+          *ngIf="isEditing"
+          (click)="cancelEdit()"
+          class="py-3 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 hover:border-slate-300 transition-all text-xs flex items-center justify-center gap-2">
+          <i class="bi bi-x-circle-fill"></i> Cancelar
+        </button>
+        <button
+          *ngIf="isEditing"
+          (click)="saveMenu()"
+          class="py-3 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 transition-all text-xs shadow-lg shadow-blue-100 flex items-center justify-center gap-2">
+          <i class="bi bi-save-fill"></i> Guardar Cambios
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+</div>

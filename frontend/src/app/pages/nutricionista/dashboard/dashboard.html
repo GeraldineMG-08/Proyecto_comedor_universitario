@@ -1,1 +1,238 @@
-<p>dashboard works!</p>
+<div class="p-6 lg:p-8 bg-slate-50 min-h-screen text-slate-800">
+
+  <!-- Header -->
+  <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+    <div class="flex items-center gap-3">
+      <div class="bg-blue-600 p-2.5 rounded-xl text-white shadow-lg shadow-blue-100">
+        <i class="bi bi-grid-fill text-xl"></i>
+      </div>
+      <div>
+        <h2 class="text-2xl font-black text-slate-800 tracking-tight">Panel Principal</h2>
+        <p class="text-slate-500 font-medium text-sm">Bienvenido al Área de Gestión Nutricional y Alimentaria</p>
+      </div>
+    </div>
+
+    <!-- Period Selector -->
+    <div class="flex items-center gap-3 bg-white p-2 rounded-xl shadow-sm border border-slate-200">
+      <span class="text-xs font-bold text-slate-400 uppercase tracking-wider pl-2">Periodo:</span>
+      <select
+        [(ngModel)]="selectedPeriodo"
+        (change)="onPeriodoChange()"
+        class="bg-slate-50 border-none text-sm font-bold text-slate-700 focus:ring-2 focus:ring-blue-100 focus:bg-white rounded-lg px-3 py-1.5 outline-none cursor-pointer">
+        <option *ngIf="periodos.length === 0" [value]="selectedPeriodo">Cargando...</option>
+        <option *ngFor="let p of periodos" [value]="p.value">{{ p.label }}</option>
+      </select>
+    </div>
+  </header>
+
+  <!-- Loading Skeleton -->
+  <div *ngIf="loading" class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 animate-pulse">
+    <div class="bg-white h-32 rounded-2xl border border-slate-200"></div>
+    <div class="bg-white h-32 rounded-2xl border border-slate-200"></div>
+    <div class="bg-white h-32 rounded-2xl border border-slate-200"></div>
+    <div class="bg-white h-32 rounded-2xl border border-slate-200"></div>
+  </div>
+
+  <!-- KPI Cards -->
+  <div *ngIf="!loading" class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+    <!-- Menus -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow group flex flex-col justify-between">
+      <div class="flex justify-between items-start mb-2">
+        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Menús Publicados</span>
+        <div class="p-2 bg-blue-50 text-blue-600 rounded-lg group-hover:scale-110 transition-transform">
+          <i class="bi bi-calendar-check-fill text-lg"></i>
+        </div>
+      </div>
+      <div>
+        <div class="text-3xl font-black text-slate-800">{{ kpis.total_menus }}</div>
+        <div class="text-xs font-bold text-slate-400 mt-1">Este mes</div>
+      </div>
+    </div>
+
+    <!-- Restrictions -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow group flex flex-col justify-between">
+      <div class="flex justify-between items-start mb-2">
+        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Restricciones Activas</span>
+        <div class="p-2 bg-rose-50 text-rose-600 rounded-lg group-hover:scale-110 transition-transform">
+          <i class="bi bi-exclamation-triangle-fill text-lg"></i>
+        </div>
+      </div>
+      <div>
+        <div class="text-3xl font-black text-slate-800">{{ kpis.total_restricciones }}</div>
+        <div class="text-xs font-bold text-slate-400 mt-1">Casos especiales</div>
+      </div>
+    </div>
+
+    <!-- Avg Calories -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow group flex flex-col justify-between">
+      <div class="flex justify-between items-start mb-2">
+        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Promedio Calórico</span>
+        <div class="p-2 bg-amber-50 text-amber-600 rounded-lg group-hover:scale-110 transition-transform">
+          <i class="bi bi-fire text-lg"></i>
+        </div>
+      </div>
+      <div>
+        <div class="text-3xl font-black text-slate-800">{{ kpis.promedio_calorico }} kcal</div>
+        <div class="text-xs font-bold text-slate-400 mt-1">Diario promedio</div>
+      </div>
+    </div>
+
+    <!-- Active Becarios -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow group flex flex-col justify-between">
+      <div class="flex justify-between items-start mb-2">
+        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Becarios Activos</span>
+        <div class="p-2 bg-emerald-50 text-emerald-600 rounded-lg group-hover:scale-110 transition-transform">
+          <i class="bi bi-people-fill text-lg"></i>
+        </div>
+      </div>
+      <div>
+        <div class="text-3xl font-black text-slate-800">{{ kpis.total_becarios }}</div>
+        <div class="text-xs font-bold text-slate-400 mt-1">Estudiantes activos</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts & Actions -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+    <!-- Calorie Chart Card -->
+    <div class="lg:col-span-2 bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex flex-col h-[400px]">
+      <div class="flex items-center gap-3 mb-6 shrink-0">
+        <div class="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
+          <i class="bi bi-bar-chart-fill text-lg"></i>
+        </div>
+        <div>
+          <h5 class="font-bold text-slate-800 text-base">Valor Calórico por Servicio</h5>
+          <p class="text-xs text-slate-400 font-medium">Distribución nutricional promedio (kcal)</p>
+        </div>
+      </div>
+
+      <!-- Chart Content -->
+      <div class="flex-1 w-full flex items-end justify-center gap-12 pb-6 border-b border-slate-100" *ngIf="chartCalorias.length > 0">
+        <div *ngFor="let item of chartCalorias" class="flex flex-col items-center flex-1 max-w-[120px]">
+          <div class="w-full bg-slate-50 rounded-xl relative overflow-hidden flex items-end" style="height: 180px;">
+            <div
+              [style.height]="getBarHeight(item.value)"
+              [style.backgroundColor]="item.color"
+              class="w-full rounded-t-xl transition-all duration-500 ease-out hover:opacity-90 relative group cursor-pointer">
+              <!-- tooltip -->
+              <span class="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white font-bold text-xs px-2.5 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-lg pointer-events-none z-10">
+                {{ item.value }} kcal
+              </span>
+            </div>
+          </div>
+          <span class="text-sm font-bold text-slate-700 mt-3">{{ item.label }}</span>
+          <span class="text-xs font-black text-slate-400 mt-1">{{ item.value }} kcal</span>
+        </div>
+      </div>
+
+      <!-- Empty chart state -->
+      <div class="flex-1 flex flex-col items-center justify-center text-slate-400" *ngIf="chartCalorias.length === 0">
+        <i class="bi bi-bar-chart-fill text-4xl opacity-30 mb-2"></i>
+        <p class="text-sm font-bold">Sin datos para este mes</p>
+      </div>
+    </div>
+
+    <!-- Quick Actions Card -->
+    <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex flex-col h-[400px]">
+      <div class="flex items-center gap-3 mb-6 shrink-0">
+        <div class="p-2.5 bg-slate-100 text-slate-600 rounded-xl">
+          <i class="bi bi-lightning-charge-fill text-lg"></i>
+        </div>
+        <div>
+          <h5 class="font-bold text-slate-800 text-base">Accesos Rápidos</h5>
+          <p class="text-xs text-slate-400 font-medium">Navegación directa a módulos</p>
+        </div>
+      </div>
+
+      <div class="flex-1 flex flex-col gap-4">
+        <!-- Action: Menus -->
+        <a routerLink="/nutricionista/gestionar-menus" class="flex items-center p-4 rounded-2xl hover:bg-blue-50/50 border border-slate-100 hover:border-blue-100 transition-all group">
+          <div class="p-3 bg-blue-50 text-blue-600 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
+            <i class="bi bi-egg-fried text-xl"></i>
+          </div>
+          <div class="ml-4 flex-1">
+            <h6 class="font-bold text-slate-800 group-hover:text-blue-900 text-sm">Gestionar Menús</h6>
+            <p class="text-[11px] text-slate-400">Planificar desayunos, almuerzos, cenas</p>
+          </div>
+          <i class="bi bi-chevron-right text-slate-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all"></i>
+        </a>
+
+        <!-- Action: Restrictions -->
+        <a routerLink="/nutricionista/restricciones" class="flex items-center p-4 rounded-2xl hover:bg-rose-50/50 border border-slate-100 hover:border-rose-100 transition-all group">
+          <div class="p-3 bg-rose-50 text-rose-600 rounded-xl group-hover:bg-rose-600 group-hover:text-white transition-colors">
+            <i class="bi bi-exclamation-triangle-fill text-xl"></i>
+          </div>
+          <div class="ml-4 flex-1">
+            <h6 class="font-bold text-slate-800 group-hover:text-rose-900 text-sm">Restricciones Alimentarias</h6>
+            <p class="text-[11px] text-slate-400">Administrar dietas de becarios</p>
+          </div>
+          <i class="bi bi-chevron-right text-slate-400 group-hover:text-rose-600 group-hover:translate-x-1 transition-all"></i>
+        </a>
+
+        <!-- Action: Reports -->
+        <a routerLink="/nutricionista/reportes" class="flex items-center p-4 rounded-2xl hover:bg-indigo-50/50 border border-slate-100 hover:border-indigo-100 transition-all group">
+          <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+            <i class="bi bi-bar-chart-fill text-xl"></i>
+          </div>
+          <div class="ml-4 flex-1">
+            <h6 class="font-bold text-slate-800 group-hover:text-indigo-900 text-sm">Reportes y Auditoría</h6>
+            <p class="text-[11px] text-slate-400">Generar y descargar reportes PDF</p>
+          </div>
+          <i class="bi bi-chevron-right text-slate-400 group-hover:text-indigo-600 group-hover:translate-x-1 transition-all"></i>
+        </a>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Statistics Card -->
+  <div class="grid grid-cols-1 gap-6 mt-8">
+    <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+      <div class="flex items-center gap-3 mb-6">
+        <div class="p-2.5 bg-rose-50 text-rose-600 rounded-xl">
+          <i class="bi bi-pie-chart-fill text-lg"></i>
+        </div>
+        <div>
+          <h5 class="font-bold text-slate-800 text-base">Distribución Global de Restricciones</h5>
+          <p class="text-xs text-slate-400 font-medium">Categorías dietéticas de estudiantes activos</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center" *ngIf="chartRestricciones.length > 0">
+        <!-- SVG Pie Chart -->
+        <div class="flex justify-center">
+          <div class="relative w-48 h-40">
+            <svg viewBox="-1 -1 2 2" class="w-full h-full transform -rotate-90 overflow-visible">
+              <path *ngFor="let item of chartRestricciones; let i = index"
+                    [attr.d]="getPiePath(i)"
+                    [attr.fill]="item.color"
+                    stroke="white"
+                    stroke-width="0.02"
+                    class="transition-all duration-200 hover:opacity-90 cursor-pointer">
+              </path>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div *ngFor="let slice of chartRestricciones" class="flex items-center gap-3 p-3 rounded-xl border border-slate-100 hover:border-slate-200 transition-all bg-slate-50/50">
+            <div class="w-3.5 h-3.5 rounded-sm shrink-0" [style.backgroundColor]="slice.color"></div>
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-bold text-slate-600 truncate">{{ slice.label }}</p>
+              <p class="text-sm font-black text-slate-800 mt-0.5">{{ slice.count }} <span class="text-[10px] text-slate-400 font-bold">estudiantes</span></p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty state -->
+      <div class="flex flex-col items-center justify-center text-slate-400 py-12" *ngIf="chartRestricciones.length === 0">
+        <i class="bi bi-pie-chart-fill text-4xl opacity-30 mb-2"></i>
+        <p class="text-sm font-bold">Sin restricciones activas registradas</p>
+      </div>
+    </div>
+  </div>
+
+</div>
