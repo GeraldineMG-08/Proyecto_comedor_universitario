@@ -1,0 +1,22 @@
+
+Warning: This is a simple server for use in testing or debugging Angular applications
+locally. It hasn't been reviewed for security issues.
+
+Binding this server to an open connection can result in compromising your application or
+computer. Using a different host than the one passed to the "--host" flag might result in
+websocket connection issues.
+
+❯ Building...
+✔ Building...
+Initial chunk files | Names         |  Raw size
+styles.css          | styles        | 490.24 kB |
+main.js             | main          | 405.58 kB |
+
+                    | Initial total | 895.82 kB
+
+Application bundle generation complete. [5.125 seconds] - 2026-07-26T21:52:45.250Z
+
+Watch mode enabled. Watching for file changes...
+NOTE: Raw file sizes do not reflect development server per-request transformations.
+  ➜  Local:   http://localhost:4200/
+  ➜  Network: http://192.168.0.2:4200/

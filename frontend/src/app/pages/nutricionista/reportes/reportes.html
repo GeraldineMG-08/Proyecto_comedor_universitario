@@ -1,1 +1,497 @@
-<p>reportes works!</p>
+<div class="flex flex-col min-h-screen bg-slate-50 font-sans text-slate-800 p-6 lg:p-8">
+
+  <!-- Header -->
+  <header class="flex items-center justify-between mb-8">
+    <div class="flex items-center gap-3">
+      <div class="bg-blue-600 p-2.5 rounded-xl text-white shadow-md">
+        <i class="bi bi-file-earmark-bar-graph-fill text-xl"></i>
+      </div>
+      <div>
+        <h2 class="text-2xl font-black text-slate-800 tracking-tight">Reportes y Auditoría</h2>
+        <p class="text-xs text-slate-500 font-bold uppercase tracking-wider mt-0.5">Periodo Académico 2026-II</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- KPI Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <!-- Menus -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between hover:shadow-md transition-shadow group h-32">
+      <div class="flex justify-between items-start mb-2">
+        <span class="text-xs font-bold text-slate-500 uppercase tracking-wide">Menús Publicados</span>
+        <div class="p-2 rounded-lg bg-blue-50 text-blue-600 group-hover:scale-110 transition-transform">
+          <i class="bi bi-egg-fried text-lg"></i>
+        </div>
+      </div>
+      <div>
+        <div class="text-3xl font-black text-slate-800">{{ kpiData.total_menus }}</div>
+        <div class="text-xs font-bold text-slate-400 mt-1">Periodo: {{ getFormattedPeriodoHeader() }}</div>
+      </div>
+    </div>
+
+    <!-- Restrictions -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between hover:shadow-md transition-shadow group h-32">
+      <div class="flex justify-between items-start mb-2">
+        <span class="text-xs font-bold text-slate-500 uppercase tracking-wide">Restricciones Activas</span>
+        <div class="p-2 rounded-lg bg-slate-100 text-slate-600 group-hover:scale-110 transition-transform">
+          <i class="bi bi-exclamation-triangle-fill text-lg"></i>
+        </div>
+      </div>
+      <div>
+        <div class="text-3xl font-black text-slate-800">{{ kpiData.total_restricciones }}</div>
+        <div class="text-xs font-bold text-slate-400 mt-1">Total Vigente</div>
+      </div>
+    </div>
+
+    <!-- Calories -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between hover:shadow-md transition-shadow group h-32">
+      <div class="flex justify-between items-start mb-2">
+        <span class="text-xs font-bold text-slate-500 uppercase tracking-wide">Promedio Calórico</span>
+        <div class="p-2 rounded-lg bg-sky-50 text-sky-600 group-hover:scale-110 transition-transform">
+          <i class="bi bi-fire text-lg"></i>
+        </div>
+      </div>
+      <div>
+        <div class="text-3xl font-black text-slate-800">{{ kpiData.promedio_calorico }} kcal</div>
+        <div class="text-xs font-bold text-slate-400 mt-1">Diario Promedio</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Block -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <!-- Calories Bar Chart -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col h-[380px]">
+      <div class="flex items-center gap-3 mb-6 shrink-0">
+        <div class="p-2 bg-blue-50 text-blue-600 rounded-lg">
+          <i class="bi bi-bar-chart-line-fill"></i>
+        </div>
+        <div>
+          <h5 class="font-bold text-slate-800 text-base">Valor Calórico Promedio</h5>
+          <p class="text-xs text-blue-600 font-bold mt-0.5">Datos del periodo: {{ getFormattedPeriodoHeader() }}</p>
+        </div>
+      </div>
+      <div class="flex-1 w-full overflow-hidden flex items-end justify-center gap-10" id="bar-chart-container">
+        <div *ngFor="let item of chartData" class="flex flex-col items-center flex-1 max-w-[100px]">
+          <div class="w-full bg-slate-50 rounded-xl relative overflow-hidden flex items-end" style="height: 180px;">
+            <div
+              [style.height]="getBarHeight(item.value)"
+              [style.backgroundColor]="item.color"
+              class="w-full rounded-t-xl transition-all duration-500 ease-out hover:opacity-90 cursor-pointer">
+            </div>
+          </div>
+          <span class="text-xs font-bold text-slate-700 mt-3">{{ item.label }}</span>
+          <span class="text-[10px] font-black text-slate-400 mt-1">{{ item.value }} kcal</span>
+        </div>
+
+        <div *ngIf="chartData.length === 0" class="flex flex-col items-center justify-center h-full text-slate-400 py-12">
+          <i class="bi bi-bar-chart-fill text-4xl opacity-30 mb-2"></i>
+          <p class="text-sm font-bold">Sin datos para este mes</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Restrictions Pie Chart -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col h-[380px]">
+      <div class="flex items-center gap-3 mb-6 shrink-0">
+        <div class="p-2 bg-sky-50 text-sky-600 rounded-lg">
+          <i class="bi bi-pie-chart-fill"></i>
+        </div>
+        <div>
+          <h5 class="font-bold text-slate-800 text-base">Restricciones Alimentarias</h5>
+          <p class="text-xs text-slate-400 font-medium mt-0.5">Distribución global de estudiantes activos</p>
+        </div>
+      </div>
+
+      <div class="flex-1 flex flex-row items-center w-full justify-center gap-6" *ngIf="pieData.length > 0">
+        <!-- SVG Pie -->
+        <div class="relative w-40 h-40 shrink-0">
+          <svg viewBox="-1 -1 2 2" class="w-full h-full transform -rotate-90 overflow-visible">
+            <path *ngFor="let item of pieData; let i = index"
+                  [attr.d]="getPiePath(i)"
+                  [attr.fill]="item.color"
+                  stroke="white"
+                  stroke-width="0.02"
+                  class="transition-all duration-200 hover:opacity-90 cursor-pointer">
+            </path>
+          </svg>
+        </div>
+
+        <!-- Legend list -->
+        <div class="flex flex-col gap-2 max-h-[220px] overflow-y-auto pr-2 pl-4">
+          <div *ngFor="let slice of pieData" class="flex items-center gap-2 text-xs font-semibold text-slate-600">
+            <div class="w-3 h-3 rounded-sm shrink-0" [style.backgroundColor]="slice.color"></div>
+            <span class="w-24 truncate">{{ slice.label }}</span>
+            <span class="font-black text-slate-800">{{ slice.count }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="pieData.length === 0" class="flex flex-col items-center justify-center h-full text-slate-400 py-12">
+        <i class="bi bi-pie-chart-fill text-4xl opacity-30 mb-2"></i>
+        <p class="text-sm font-bold">Sin restricciones activas registradas</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Parameters Toolbar / Builder card -->
+  <div class="bg-slate-900 p-5 rounded-2xl shadow-lg border border-slate-850 flex flex-col xl:flex-row items-center gap-6 mb-8 sticky top-4 z-20">
+    <div class="flex items-center gap-4 flex-1 w-full text-white">
+      <div class="p-2.5 bg-white/10 text-white rounded-xl shadow-inner border border-white/10">
+        <i class="bi bi-sliders text-lg"></i>
+      </div>
+      <div>
+        <h5 class="font-bold text-base">Generar Reporte</h5>
+        <p class="text-xs text-slate-400 font-medium hidden sm:block">Seleccione los parámetros para visualizar.</p>
+      </div>
+    </div>
+
+    <div class="flex flex-col sm:flex-row items-end gap-4 w-full xl:w-auto">
+      <!-- Period Selector -->
+      <div class="relative">
+        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 ml-1">Periodo</label>
+        <div class="relative">
+          <select
+            [(ngModel)]="selectedMonth"
+            (change)="onMonthChange()"
+            class="w-56 pl-10 pr-8 py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-sm font-bold text-slate-200 outline-none appearance-none cursor-pointer">
+            <option *ngFor="let p of periodos" [value]="p.value">{{ p.label }}</option>
+          </select>
+          <i class="bi bi-calendar text-slate-400 absolute left-3 top-3 pointer-events-none"></i>
+        </div>
+      </div>
+
+      <!-- Report Type Selector -->
+      <div class="relative">
+        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 ml-1">Tipo</label>
+        <div class="relative">
+          <select
+            [(ngModel)]="selectedType"
+            class="w-64 pl-10 pr-8 py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-sm font-bold text-slate-200 outline-none appearance-none cursor-pointer">
+            <option value="menus_completos">Menús Completos por Mes</option>
+            <option value="restricciones_activas">Restricciones Alimentarias</option>
+          </select>
+          <i class="bi bi-file-earmark-text text-slate-400 absolute left-3 top-3 pointer-events-none"></i>
+        </div>
+      </div>
+
+      <!-- Actions buttons -->
+      <div class="flex gap-2">
+        <button (click)="generarReporte()" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-lg font-bold text-sm shadow-md flex items-center justify-center gap-2 transition-colors">
+          <i class="bi bi-play-fill"></i> Generar
+        </button>
+        <button (click)="vistaPreviaPDF()" class="bg-white text-slate-900 hover:bg-slate-100 px-6 py-2.5 rounded-lg font-bold text-sm shadow-md flex items-center justify-center gap-2 transition-colors">
+          <i class="bi bi-eye"></i> Vista Previa
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLE VISUALIZATION OR SIMULATED PREVIEW SHEET -->
+  <div id="view-container" class="w-full">
+
+    <!-- Empty parameters state -->
+    <div *ngIf="tableData.length === 0 && !showSimulatedPreview" class="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50/50 min-h-[400px] mb-8">
+      <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4 text-slate-300 shadow-sm border border-slate-100">
+        <i class="bi bi-file-earmark-bar-graph text-3xl"></i>
+      </div>
+      <h3 class="text-slate-600 font-bold text-base">Esperando parámetros para generar visualización</h3>
+    </div>
+
+    <!-- Quick Preview HTML Table -->
+    <div *ngIf="tableData.length > 0 && !showSimulatedPreview" class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm flex flex-col min-h-[400px]">
+      <div class="bg-white px-6 py-4 border-b border-slate-100 flex justify-between items-center shrink-0">
+        <div>
+          <h5 class="text-lg font-black text-slate-800">Listado de Registros</h5>
+          <p class="text-xs text-slate-400 font-medium">Vista rápida de datos</p>
+        </div>
+      </div>
+
+      <div class="overflow-auto flex-1 relative bg-white">
+        <!-- Table: Menus completos -->
+        <table *ngIf="selectedType === 'menus_completos'" class="w-full text-left border-collapse min-w-[1000px]">
+          <thead class="bg-slate-50 sticky top-0 z-10 shadow-sm">
+            <tr>
+              <th class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase">Fecha</th>
+              <th class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase">Desayuno</th>
+              <th class="px-4 py-3 text-right text-[11px] font-bold text-slate-500 uppercase">Kcal</th>
+              <th class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase">Almuerzo</th>
+              <th class="px-4 py-3 text-right text-[11px] font-bold text-slate-500 uppercase">Kcal</th>
+              <th class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase">Cena</th>
+              <th class="px-4 py-3 text-right text-[11px] font-bold text-slate-500 uppercase">Kcal</th>
+              <th class="px-6 py-3 text-right text-[11px] font-bold text-slate-500 uppercase">Total</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 text-sm bg-white">
+            <tr *ngFor="let row of tableData" class="hover:bg-blue-50/20 align-top transition-colors">
+              <td class="px-6 py-4"><span class="font-bold text-slate-700">{{ row.dia }} {{ row.fecha.split('-')[2] }}</span></td>
+              <td class="px-6 py-4">
+                <ul class="space-y-1">
+                  <li *ngFor="let it of row.desayuno.items" class="text-slate-600 text-xs flex items-start gap-1">
+                    <span class="text-blue-400 mt-1">•</span> {{ it }}
+                  </li>
+                </ul>
+              </td>
+              <td class="px-4 py-4 text-right font-medium text-slate-500">{{ row.desayuno.kcal }}</td>
+              <td class="px-6 py-4 bg-slate-50/50">
+                <ul class="space-y-1">
+                  <li *ngFor="let it of row.almuerzo.items" class="text-slate-600 text-xs flex items-start gap-1">
+                    <span class="text-blue-400 mt-1">•</span> {{ it }}
+                  </li>
+                </ul>
+              </td>
+              <td class="px-4 py-4 text-right font-medium text-slate-500 bg-slate-50/50">{{ row.almuerzo.kcal }}</td>
+              <td class="px-6 py-4">
+                <ul class="space-y-1">
+                  <li *ngFor="let it of row.cena.items" class="text-slate-600 text-xs flex items-start gap-1">
+                    <span class="text-blue-400 mt-1">•</span> {{ it }}
+                  </li>
+                </ul>
+              </td>
+              <td class="px-4 py-4 text-right font-medium text-slate-500">{{ row.cena.kcal }}</td>
+              <td class="px-6 py-4 text-right font-black text-slate-800">{{ row.total }}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Table: Restricciones activas -->
+        <table *ngIf="selectedType !== 'menus_completos'" class="w-full text-left border-collapse min-w-[1000px]">
+          <thead class="bg-slate-50 sticky top-0 z-10 shadow-sm">
+            <tr>
+              <th class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase">Estudiante</th>
+              <th class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase">Código</th>
+              <th class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase">Tipo</th>
+              <th class="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase">Detalle</th>
+              <th class="px-6 py-3 text-center text-[11px] font-bold text-slate-500 uppercase">Inicio</th>
+              <th class="px-6 py-3 text-center text-[11px] font-bold text-slate-500 uppercase">Estado</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 text-sm bg-white">
+            <tr *ngFor="let row of tableData" class="hover:bg-blue-50/20 transition-colors">
+              <td class="px-6 py-4 font-bold text-slate-800">{{ row.nombre_completo }}</td>
+              <td class="px-6 py-4 font-mono text-slate-500 text-xs">{{ row.codigo_universitario }}</td>
+              <td class="px-6 py-4">
+                <span [ngClass]="[row.style.bg, row.style.text, row.style.border]" class="px-2 py-1 rounded border text-[10px] font-bold uppercase">
+                  {{ row.tipo_restriccion }}
+                </span>
+              </td>
+              <td class="px-6 py-4 text-slate-600 text-xs">{{ row.alimentos_restringidos || '-' }}</td>
+              <td class="px-6 py-4 text-center text-xs text-slate-500">{{ row.fecha_inicio }}</td>
+              <td class="px-6 py-4 text-center">
+                <span class="px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold uppercase border border-emerald-200">
+                  Activo
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SIMULATED A4 PAPER SHEET VIEW (Vista Previa on-screen before downloading) -->
+    <div *ngIf="showSimulatedPreview" class="flex flex-col bg-slate-800/90 rounded-2xl shadow-xl border border-slate-700 h-auto relative mb-8">
+
+      <!-- Simulation bar -->
+      <div class="bg-slate-900 px-6 py-3 border-b border-slate-700 flex justify-between items-center gap-4 sticky top-0 z-50 rounded-t-2xl shadow-md">
+        <div class="flex items-center gap-4 text-white">
+          <div class="bg-white/10 p-2 rounded-lg"><i class="bi bi-file-earmark-text text-xl"></i></div>
+          <div>
+            <h5 class="font-bold text-sm">Vista Previa Visual</h5>
+            <p class="text-slate-400 text-xs">Simulación de impresión ({{ totalPages }} Páginas)</p>
+          </div>
+        </div>
+        <button (click)="generatePDFReport()" class="flex items-center gap-2 px-6 py-2 rounded-lg bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-500 shadow-md">
+          <i class="bi bi-download"></i> Descargar Reporte
+        </button>
+      </div>
+
+      <!-- The A4 Sheet Simulator wrapper -->
+      <div class="overflow-y-auto max-h-[85vh] bg-slate-800/50 p-8 flex flex-col items-center gap-8">
+
+        <!-- PAGE 1: PORTADA -->
+        <div class="w-[794px] min-h-[1123px] bg-white shadow-2xl p-12 text-slate-900 relative shrink-0 flex flex-col mb-4">
+          <div class="flex flex-col items-center mt-20 flex-1">
+            <i class="bi bi-mortarboard-fill text-6xl text-slate-700 mb-4"></i>
+            <h1 class="text-2xl font-black text-slate-900 uppercase tracking-wider text-center">Universidad Nacional de Moquegua</h1>
+            <p class="text-sm font-bold text-slate-500 uppercase tracking-[0.2em] mt-2">"Universitas Universitatis"</p>
+            <div class="w-24 h-1 bg-slate-400 my-10"></div>
+            <h2 class="text-xl font-bold text-slate-800 uppercase tracking-wide">Dirección de Bienestar Universitario</h2>
+            <h3 class="text-lg font-medium text-slate-500 uppercase mt-2">Servicio de Comedor</h3>
+            <div class="w-full border-y-2 border-slate-900 py-10 text-center my-16">
+              <h2 class="text-3xl font-black text-slate-900 uppercase tracking-tight">
+                {{ selectedType === 'menus_completos' ? 'Programación de Menú Mensual' : 'Padrón de Restricciones' }}
+              </h2>
+              <h3 class="text-2xl font-bold text-blue-900 uppercase mt-2">
+                {{ selectedType === 'menus_completos' ? getFormattedPeriodoHeader().toUpperCase() : 'VIGENTES ' + getCurrentYear() }}
+              </h3>
+            </div>
+            <div class="text-center mt-8 mb-16">
+              <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Evaluado y Aprobado por:</p>
+              <div class="text-lg font-black text-slate-800 uppercase">{{ kpiData.responsable_nombre }}</div>
+              <div class="text-sm font-medium text-slate-500 uppercase">{{ kpiData.responsable_cargo }}</div>
+            </div>
+            <div class="text-center mb-8">
+              <p class="text-sm font-bold text-slate-800">Ilo, Moquegua - Perú</p>
+              <p class="text-xs text-slate-500">{{ getCurrentYear() }}</p>
+            </div>
+          </div>
+          <!-- Page Footer -->
+          <div class="mt-auto pt-8 border-t border-slate-300 flex justify-between items-end text-[10px] text-slate-600">
+            <div><p>Universidad Nacional de Moquegua</p><p>Av. Miraflores s/n - Ciudad Jardín - Ilo, Moquegua</p></div>
+            <div class="font-bold">Página 1 de {{ totalPages }}</div>
+          </div>
+        </div>
+
+        <!-- PAGE 2: GENERAL STATS -->
+        <div class="w-[794px] min-h-[1123px] bg-white shadow-2xl p-12 text-slate-900 relative shrink-0 flex flex-col mb-4">
+          <div class="text-center border-b-2 border-slate-800 pb-4 mb-10">
+            <h2 class="text-2xl font-black text-slate-900 uppercase">Información General</h2>
+          </div>
+          <div class="mb-8">
+            <h3 class="text-sm font-black text-slate-900 mb-1">
+              {{ selectedType === 'menus_completos' ? 'PROGRAMACIÓN DE MENÚ - ' + getFormattedPeriodoHeader().toUpperCase() : 'PADRÓN DE RESTRICCIONES - ' + getCurrentYear() }}
+            </h3>
+          </div>
+
+          <!-- Menus info -->
+          <div *ngIf="selectedType === 'menus_completos'" class="mb-10">
+            <h4 class="text-sm font-black text-slate-800 uppercase tracking-wider mb-4 border-b border-slate-200 pb-1">I. Datos Generales</h4>
+            <table class="w-full text-xs mb-8">
+              <tbody>
+                <tr class="border-b border-slate-100"><td class="py-2 font-bold w-48">Período:</td><td class="py-2">{{ getPeriodoTexto() }}</td></tr>
+                <tr class="border-b border-slate-100"><td class="py-2 font-bold">Semestre Académico:</td><td class="py-2">{{ getCurrentYear() }}-II</td></tr>
+                <tr class="border-b border-slate-100"><td class="py-2 font-bold">Días operativos:</td><td class="py-2">{{ tableData.length }} días (Lunes a Viernes)</td></tr>
+                <tr class="border-b border-slate-100"><td class="py-2 font-bold">Población beneficiaria:</td><td class="py-2">{{ kpiData.total_becarios }} becarios activos</td></tr>
+                <tr class="border-b border-slate-100"><td class="py-2 font-bold">Responsable:</td><td class="py-2">{{ kpiData.responsable_nombre }}</td></tr>
+              </tbody>
+            </table>
+
+            <h4 class="text-sm font-black text-slate-800 uppercase tracking-wider mb-4 border-b border-slate-200 pb-1">II. Resumen Nutricional</h4>
+            <table class="w-full text-xs border border-slate-300">
+              <thead class="bg-slate-200">
+                <tr><th class="px-4 py-2 text-left font-bold text-slate-800 border-r border-slate-300">Concepto</th><th class="px-4 py-2 text-left font-bold text-slate-800">Valor</th></tr>
+              </thead>
+              <tbody>
+                <tr class="border-b border-slate-200"><td class="px-4 py-2 border-r border-slate-200">VCT Promedio</td><td class="px-4 py-2">{{ kpiData.promedio_calorico }} kcal/día</td></tr>
+                <tr class="border-b border-slate-200"><td class="px-4 py-2 border-r border-slate-200">Requerido</td><td class="px-4 py-2">2700 kcal/día</td></tr>
+                <tr><td class="px-4 py-2 border-r border-slate-200">Estado</td><td class="px-4 py-2 font-black text-emerald-700">CUMPLE</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Restrictions active stats info -->
+          <div *ngIf="selectedType !== 'menus_completos'" class="mb-10">
+            <h4 class="text-sm font-black text-slate-800 uppercase tracking-wider mb-4 border-b border-slate-200 pb-1">I. Resumen Estadístico</h4>
+            <table class="w-full text-xs border border-slate-300 mb-8">
+              <thead class="bg-slate-200">
+                <tr>
+                  <th class="px-4 py-2 text-left font-bold text-slate-800 border-r border-slate-300">Tipo de Restricción</th>
+                  <th class="px-4 py-2 text-center font-bold text-slate-800">Cantidad Estudiantes</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of pieData" class="border-b border-slate-200">
+                  <td class="px-4 py-2 border-r border-slate-200 font-bold">{{ item.label }}</td>
+                  <td class="px-4 py-2 text-center">{{ item.count }}</td>
+                </tr>
+                <tr>
+                  <td class="px-4 py-2 border-r border-slate-200 font-black bg-slate-100">TOTAL</td>
+                  <td class="px-4 py-2 font-black bg-slate-100 text-center">{{ getTotalRestriccionesCount() }}</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="mt-12 flex flex-col items-center">
+              <div class="w-64 border-t border-slate-800 pt-2 text-center">
+                <p class="text-xs font-bold text-slate-800 uppercase">{{ kpiData.responsable_nombre }}</p>
+                <p class="text-[10px] text-slate-500 uppercase">{{ kpiData.responsable_cargo }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Page Footer -->
+          <div class="mt-auto pt-8 border-t border-slate-300 flex justify-between items-end text-[10px] text-slate-600">
+            <div><p>Universidad Nacional de Moquegua</p><p>Av. Miraflores s/n - Ciudad Jardín - Ilo, Moquegua</p></div>
+            <div class="font-bold">Página 2 de {{ totalPages }}</div>
+          </div>
+        </div>
+
+        <!-- PAGE 3+: CHUNKED DETAIL TABLES -->
+        <div *ngFor="let chunk of getDetailChunks(); let chunkIdx = index" class="w-[794px] min-h-[1123px] bg-white shadow-2xl p-12 text-slate-900 relative shrink-0 flex flex-col mb-4">
+          <div class="text-center border-b-2 border-slate-800 pb-4 mb-8">
+            <h2 class="text-2xl font-black text-slate-900 uppercase">Detalle de Registros</h2>
+          </div>
+
+          <div class="flex-1 overflow-hidden">
+            <!-- Table detail chunk: Menus -->
+            <table *ngIf="selectedType === 'menus_completos'" class="w-full text-left border-collapse text-[9px] mb-4">
+              <thead class="bg-slate-100 uppercase font-bold">
+                <tr class="h-10">
+                  <th class="px-2 border border-slate-300 w-16">Fecha</th>
+                  <th class="px-2 border border-slate-300">Desayuno</th>
+                  <th class="px-1 border border-slate-300 w-8">Cal</th>
+                  <th class="px-2 border border-slate-300">Almuerzo</th>
+                  <th class="px-1 border border-slate-300 w-8">Cal</th>
+                  <th class="px-2 border border-slate-300">Cena</th>
+                  <th class="px-1 border border-slate-300 w-8">Cal</th>
+                  <th class="px-1 border border-slate-300 w-10">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let row of chunk" class="border-b border-slate-300 align-top h-20 text-[9px]">
+                  <td class="px-2 py-2 border-r border-slate-300 font-bold text-center bg-slate-50">{{ row.dia }}<br/>{{ row.fecha.split('-')[2] }}</td>
+                  <td class="px-2 py-2 border-r border-slate-300 space-y-1">
+                    <div *ngFor="let it of row.desayuno.items">{{ it }}</div>
+                  </td>
+                  <td class="px-1 py-2 border-r border-slate-300 text-center font-bold">{{ row.desayuno.kcal }}</td>
+                  <td class="px-2 py-2 border-r border-slate-300 space-y-1 bg-slate-50/30">
+                    <div *ngFor="let it of row.almuerzo.items">{{ it }}</div>
+                  </td>
+                  <td class="px-1 py-2 border-r border-slate-300 text-center font-bold bg-slate-50/30">{{ row.almuerzo.kcal }}</td>
+                  <td class="px-2 py-2 border-r border-slate-300 space-y-1">
+                    <div *ngFor="let it of row.cena.items">{{ it }}</div>
+                  </td>
+                  <td class="px-1 py-2 border-r border-slate-300 text-center font-bold">{{ row.cena.kcal }}</td>
+                  <td class="px-1 py-2 text-center font-black bg-slate-100">{{ row.total }}</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <!-- Table detail chunk: Restrictions -->
+            <table *ngIf="selectedType !== 'menus_completos'" class="w-full text-left border-collapse text-[10px]">
+              <thead class="bg-slate-100 uppercase font-bold">
+                <tr>
+                  <th class="px-2 py-2 border border-slate-300 w-12 text-center">N°</th>
+                  <th class="px-2 py-2 border border-slate-300 w-24">Código</th>
+                  <th class="px-2 py-2 border border-slate-300">Estudiante</th>
+                  <th class="px-2 py-2 border border-slate-300 w-24">Tipo</th>
+                  <th class="px-2 py-2 border border-slate-300">Detalle</th>
+                  <th class="px-2 py-2 border border-slate-300 w-20 text-center">Vigencia</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let row of chunk; let idx = index" class="border-b border-slate-300 align-top">
+                  <td class="px-2 py-2 border-r border-slate-300 text-center font-bold">{{ (chunkIdx * 8) + idx + 1 }}</td>
+                  <td class="px-2 py-2 border-r border-slate-300 font-mono text-[9px]">{{ row.codigo_universitario }}</td>
+                  <td class="px-2 py-2 border-r border-slate-300 font-bold">{{ row.nombre_completo }}</td>
+                  <td class="px-2 py-2 border-r border-slate-300 font-bold text-slate-900">{{ row.tipo_restriccion }}</td>
+                  <td class="px-2 py-2 border-r border-slate-300">{{ row.alimentos_restringidos || '-' }}</td>
+                  <td class="px-2 py-2 text-center">{{ row.fecha_termino || 'Indefinido' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Page Footer -->
+          <div class="mt-auto pt-8 border-t border-slate-300 flex justify-between items-end text-[10px] text-slate-600">
+            <div><p>Universidad Nacional de Moquegua</p><p>Av. Miraflores s/n - Ciudad Jardín - Ilo, Moquegua</p></div>
+            <div class="font-bold">Página {{ chunkIdx + 3 }} de {{ totalPages }}</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+</div>
