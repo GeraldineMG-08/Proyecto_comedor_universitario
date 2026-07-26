@@ -1,0 +1,68 @@
+<aside class="sidebar">
+
+    <div class="sidebar-header">
+
+        <img src="assets/images/logo_unam.jpg">
+
+        <h2>Sistema Comedor</h2>
+
+        <span>UNAM Ilo</span>
+
+    </div>
+
+    <nav>
+
+        <a routerLink="/asistenta">
+            <i class="bi bi-grid-fill"></i>
+            Dashboard
+        </a>
+
+        <a routerLink="/asistenta/padron-estudiantes">
+            <i class="bi bi-people-fill"></i>
+            Padrón de estudiantes
+        </a>
+
+        <a routerLink="/asistenta/asistencia">
+            <i class="bi bi-calendar-check"></i>
+            Asistencia
+        </a>
+
+        <a routerLink="/asistenta/retiros-sanciones">
+            <i class="bi bi-exclamation-triangle"></i>
+            Retiros y sanciones
+        </a>
+
+        <a routerLink="/asistenta/justificaciones">
+            <i class="bi bi-file-earmark-text"></i>
+            Justificaciones
+        </a>
+
+    </nav>
+
+    <div class="sidebar-footer">
+
+        <div class="user">
+
+            <i class="bi bi-person-circle"></i>
+
+            <div>
+
+                <strong>{{usuario.nombre}}</strong>
+
+                <span>Asistenta Social</span>
+
+            </div>
+
+        </div>
+
+        <button (click)="logout()">
+
+            <i class="bi bi-box-arrow-right"></i>
+
+            Cerrar sesión
+
+        </button>
+
+    </div>
+
+</aside>

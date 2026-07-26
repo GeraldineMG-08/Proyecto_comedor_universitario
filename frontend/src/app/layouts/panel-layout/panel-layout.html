@@ -1,0 +1,174 @@
+<div class="panel-layout">
+
+  <!-- ========================================= -->
+  <!-- SIDEBAR                                   -->
+  <!-- ========================================= -->
+
+  <aside
+    class="sidebar"
+    [class.sidebar-abierto]="sidebarAbierto">
+
+    <!-- Logo y nombre del sistema -->
+
+    <div class="sidebar-header">
+
+      <div class="sidebar-logo">
+
+        <i class="bi bi-mortarboard-fill"></i>
+
+      </div>
+
+      <div class="sidebar-brand">
+
+        <h1>Comedor</h1>
+
+        <p>UNAM - Ilo</p>
+
+      </div>
+
+    </div>
+
+
+    <!-- Menú dinámico según el rol -->
+
+    <nav class="sidebar-menu">
+
+      <ng-container
+        *ngFor="let seccion of menuActual">
+
+        <p
+          *ngIf="seccion.titulo"
+          class="menu-titulo">
+
+          {{ seccion.titulo }}
+
+        </p>
+
+
+        <a
+          *ngFor="let opcion of seccion.opciones"
+
+          class="menu-opcion"
+
+          [routerLink]="opcion.ruta"
+
+          routerLinkActive="menu-opcion-activa"
+
+          [routerLinkActiveOptions]="{
+            exact: opcion.exacta === true
+          }"
+
+          (click)="cerrarSidebar()">
+
+          <i [ngClass]="opcion.icono"></i>
+
+          <span>{{ opcion.texto }}</span>
+
+          <i class="bi bi-chevron-right menu-flecha"></i>
+
+        </a>
+
+      </ng-container>
+
+    </nav>
+
+
+    <!-- Cerrar sesión -->
+
+    <div class="sidebar-footer">
+
+      <button
+        type="button"
+        class="boton-salir"
+        (click)="cerrarSesion()">
+
+        <i class="bi bi-box-arrow-right"></i>
+
+        <span>Salir del sistema</span>
+
+      </button>
+
+    </div>
+
+  </aside>
+
+
+  <!-- Fondo oscuro para móvil -->
+
+  <button
+    type="button"
+
+    class="sidebar-overlay"
+
+    [class.sidebar-overlay-visible]="sidebarAbierto"
+
+    aria-label="Cerrar menú lateral"
+
+    (click)="cerrarSidebar()">
+
+  </button>
+
+
+  <!-- ========================================= -->
+  <!-- CONTENIDO PRINCIPAL                       -->
+  <!-- ========================================= -->
+
+  <div class="contenido-principal">
+
+    <!-- NAVBAR -->
+
+    <header class="navbar">
+
+      <div class="navbar-izquierda">
+
+        <button
+          type="button"
+          class="boton-menu-movil"
+          aria-label="Abrir menú lateral"
+          (click)="alternarSidebar()">
+
+          <i class="bi bi-list"></i>
+
+        </button>
+
+
+        <h2>{{ tituloPagina }}</h2>
+
+      </div>
+
+
+      <!-- Información del usuario -->
+
+      <div class="perfil-usuario">
+
+        <div class="perfil-informacion">
+
+          <p>{{ usuario?.nombre || 'Usuario' }}</p>
+
+          <span>{{ nombreRol }}</span>
+
+        </div>
+
+
+        <div class="perfil-avatar">
+
+          {{ inicialesUsuario }}
+
+        </div>
+
+      </div>
+
+    </header>
+
+
+    <!-- Aquí se cargan dashboard y páginas -->
+
+    <main class="contenido-pagina">
+
+      <router-outlet></router-outlet>
+
+    </main>
+
+  </div>
+
+</div>

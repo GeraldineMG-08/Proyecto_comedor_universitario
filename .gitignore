@@ -1,0 +1,14 @@
+# Dependencias de Node (Backend y Frontend)
+**/node_modules/
+
+# Archivos de entorno / Variables sensibles (Backend)
+**/.env
+
+# Cache y compilación de Angular (Frontend)
+**/.angular/
+dist/
+tmp/
+
+# Configuración del editor o sistema
+.vscode/
+.DS_Store

@@ -1,0 +1,330 @@
+
+:host {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  min-height: 100vh;
+  width: 100%;
+
+  overflow: hidden;
+  position: relative;
+
+  font-family: "Inter", "Segoe UI", sans-serif;
+
+  background:
+      radial-gradient(circle at top left,#dbeafe 0%,transparent 35%),
+      radial-gradient(circle at bottom right,#dbeafe 0%,transparent 35%),
+      linear-gradient(135deg,#f8fbff,#eef5ff,#f7faff);
+
+  animation: backgroundMove 10s ease-in-out infinite alternate;
+}
+
+@keyframes backgroundMove{
+
+    from{
+        background-position:0 0,100% 100%,center;
+    }
+
+    to{
+        background-position:40px 0,-40px 100%,center;
+    }
+
+}
+
+// Tarjeta principal de login
+.login-card {
+  background: #ffffff;
+  width: 100%;
+  max-width: 420px;
+  border-radius: 12px;
+  padding: 40px 36px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+
+  .logo-container {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+
+    .logo {
+      max-width: 130px;
+      height: auto;
+      object-fit: contain;
+    }
+  }
+
+  h2 {
+    margin: 0;
+    color: #1A3682;
+    font-size: 1.6rem;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  .subtitle {
+    margin: 8px 0 28px 0;
+    color: #64748b;
+    font-size: 0.88rem;
+    text-align: center;
+  }
+
+  form {
+    width: 100%;
+
+    .form-group {
+      margin-bottom: 18px;
+
+      label {
+        display: block;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: #475569;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+      }
+
+      .input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+
+        .icon {
+          position: absolute;
+          left: 14px;
+          color: #94a3b8;
+          display: flex;
+          align-items: center;
+        }
+
+        input {
+          width: 100%;
+          padding: 12px 14px 12px 42px;
+          background-color: #f8fafc;
+          border: 1px solid #e2e8f0;
+          border-radius: 8px;
+          font-size: 0.92rem;
+          color: #334155;
+          outline: none;
+          transition: all 0.2s ease;
+
+          &::placeholder {
+            color: #94a3b8;
+          }
+
+          &:focus {
+            background-color: #ffffff;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+          }
+        }
+
+        .btn-toggle-eye {
+
+          position: absolute;
+          right: 8px;
+
+          width: 38px;
+          height: 38px;
+
+          border: none;
+          outline: none;
+
+          border-radius: 50%;
+
+          background: transparent;
+
+          display: flex;
+          justify-content: center;
+          align-items: center;
+
+          cursor: pointer;
+
+          transition: all .25s ease;
+
+          i{
+
+            font-size: 18px;
+
+            color:#94a3b8;
+
+            transition:.25s;
+
+          }
+
+          &:hover{
+
+            background:#eef2ff;
+
+            i{
+
+              color:#2563eb;
+              transform:scale(1.12);
+
+            }
+
+          }
+
+          &:active{
+
+            transform:scale(.92);
+
+          }
+
+        }
+      }
+    }
+
+    .forgot-password {
+      text-align: right;
+      margin-bottom: 24px;
+
+      a {
+        color: #2563eb;
+        font-size: 0.82rem;
+        font-weight: 500;
+        text-decoration: none;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 12px;
+      background-color: #2563eb; // Azul brillante de la imagen
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+
+      &:hover {
+        background-color: #1d4ed8;
+      }
+    }
+  }
+
+  .card-footer {
+    margin-top: 28px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.85rem;
+
+    span {
+      color: #64748b;
+    }
+
+    a {
+      color: #2563eb;
+      font-weight: 600;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+}
+
+// Pie de página fuera de la tarjeta
+.external-footer {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+
+  .btn-back {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #64748b;
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: #334155;
+    }
+  }
+
+  .footer-info {
+    text-align: center;
+
+    p {
+      margin: 2px 0;
+      font-size: 0.78rem;
+      color: #94a3b8;
+    }
+  }
+}
+
+.login-card{
+
+    position:relative;
+
+    backdrop-filter:blur(15px);
+
+    border:1px solid rgba(255,255,255,.5);
+
+    box-shadow:
+        0 20px 60px rgba(31,41,55,.08),
+        0 8px 25px rgba(37,99,235,.08);
+
+    transition:.35s;
+
+    animation:fadeCard .7s ease;
+
+}
+
+.login-card:hover{
+
+    transform:translateY(-6px);
+
+    box-shadow:
+        0 30px 70px rgba(0,0,0,.10),
+        0 15px 40px rgba(37,99,235,.10);
+
+}
+
+@keyframes fadeCard{
+
+from{
+
+opacity:0;
+transform:translateY(40px);
+
+}
+
+to{
+
+opacity:1;
+transform:translateY(0);
+
+}
+
+}
+
+.logo{
+
+    transition:.4s;
+
+
+}
+
+.logo:hover{
+
+    transform:scale(1.08) rotate(-3deg);
+
+}
+

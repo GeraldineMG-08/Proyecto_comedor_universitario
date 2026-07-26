@@ -1,0 +1,71 @@
+<div class="login-card">
+  <!-- Logo de la universidad -->
+  <div class="logo-container">
+    <img src="assets/images/logo_unam.jpg" alt="logo_unam" class="logo">
+  </div>
+
+  <!-- Encabezado -->
+  <h2>Iniciar Sesión</h2>
+  <p class="subtitle">Bienvenido de nuevo, ingrese sus credenciales.</p>
+
+  <!-- Formulario -->
+  <form (ngSubmit)="onLogin()">
+    <div class="form-group">
+      <label for="usuario">USUARIO</label>
+      <div class="input-wrapper">
+        <!-- Puedes usar SVG o Lucide/FontAwesome si usas íconos -->
+        <span class="icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </span>
+        <input 
+        type="text" 
+        id="usuario" 
+        placeholder="Usuario"
+        autocomplete="off"
+        [(ngModel)]="codigo_usuario"
+        name="usuario">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="contrasena">CONTRASEÑA</label>
+      <div class="input-wrapper">
+        <span class="icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </span>
+        <input 
+        [type]="showPassword ? 'text' : 'password'" 
+        id="contrasena" 
+        placeholder="Contraseña"
+        [(ngModel)]="password"
+        name="password">
+        <button
+          type="button"
+          class="btn-toggle-eye"
+          (click)="showPassword = !showPassword">
+
+          <i
+            class="bi"
+            [ngClass]="showPassword ? 'bi-eye-slash-fill' : 'bi-eye-fill'">
+          </i>
+
+        </button>
+      </div>
+    </div>
+
+    <button type="submit" class="btn-submit">Iniciar Sesión</button>
+  </form>
+
+
+<div class="external-footer">
+  <!-- Enlaces del pie de página exterior 
+  <a href="#" class="btn-back">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+    Volver al inicio
+  </a>
+-->
+  <div class="footer-info">
+    <p>Universidad Nacional de Moquegua - Sede Ilo</p>
+    <p>© 2025 Sistema de Bienestar Alimentario</p>
+  </div>
+</div>
