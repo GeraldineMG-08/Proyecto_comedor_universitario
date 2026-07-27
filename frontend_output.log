@@ -20,3 +20,43 @@ Watch mode enabled. Watching for file changes...
 NOTE: Raw file sizes do not reflect development server per-request transformations.
   ➜  Local:   http://localhost:4200/
   ➜  Network: http://192.168.0.2:4200/
+❯ Changes detected. Rebuilding...
+✔ Changes detected. Rebuilding...
+Initial chunk files | Names |  Raw size
+main.js             | main  | 406.57 kB |
+
+Application bundle generation complete. [5.745 seconds] - 2026-07-26T23:59:01.433Z
+
+Component update sent to client(s).
+❯ Changes detected. Rebuilding...
+✔ Changes detected. Rebuilding...
+Initial chunk files | Names |  Raw size
+main.js             | main  | 407.76 kB |
+
+Application bundle generation complete. [1.377 seconds] - 2026-07-26T23:59:02.870Z
+
+Component update sent to client(s).
+❯ Changes detected. Rebuilding...
+✔ Changes detected. Rebuilding...
+Initial chunk files | Names |  Raw size
+main.js             | main  | 410.00 kB |
+
+Application bundle generation complete. [0.802 seconds] - 2026-07-26T23:59:04.954Z
+
+Component update sent to client(s).
+❯ Changes detected. Rebuilding...
+✔ Changes detected. Rebuilding...
+Initial chunk files | Names |  Raw size
+main.js             | main  | 413.38 kB |
+
+Application bundle generation complete. [1.011 seconds] - 2026-07-26T23:59:10.375Z
+
+Component update sent to client(s).
+❯ Changes detected. Rebuilding...
+✔ Changes detected. Rebuilding...
+
+No output file changes.
+
+Application bundle generation complete. [0.008 seconds] - 2026-07-27T00:04:39.555Z
+
+Page reload sent to client(s).
